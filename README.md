@@ -1,7 +1,5 @@
-Java for LDA Topic Model 
+Collapsed Gibbs Sampler for LDA model (JAVA)
 ==========
-
-Collapsed Gibbs Sampler for LDA model. 
 
 You can run the testHDP.java to see how it is working. 
 
