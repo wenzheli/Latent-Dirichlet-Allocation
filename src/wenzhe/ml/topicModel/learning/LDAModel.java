@@ -13,9 +13,10 @@ import wenzhe.ml.topicModel.datasets.Document;
 /**
  * The class represents the LDAModel, with some parameters. 
  * If you want to learn more about model, please refer to David Blei's paper (JMLR 2003)
- *
+ * 
  * @author wenzhe
- *
+ * TODO will change maining convensions, right now ,just follow the notations that I used to 
+ * derive the gibbs sampling.  Will update soon. 
  */
 public class LDAModel {
 	
