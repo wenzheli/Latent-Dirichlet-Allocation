@@ -37,13 +37,13 @@ public class LDAModel {
 	private double[][] theta;
 	
 	/** total number of topics  */
-	private int K; 
+	private int numTopics; 
 	
 	/** vocabulary size  */
-	private int V;
+	private int vocabSize;
 	
 	/** total number of documents in the corpus */
-	private int D;  
+	private int numDocs;  
 	
 	/** latent variable, denote the word assignment to specific topic 
 	 * the size of first dimension is D, where D is the number of documents,
@@ -56,24 +56,24 @@ public class LDAModel {
 	/**
 	 * D by K dimensional matrix, it stores the count of terms assigned to 
 	 * topic k, for each document.  Each shows corresponds to one document. And each entry 
-	 * DK_{i,j} means the number of terms assigned to topic j from document i. 
+	 * docTopic_{i,j} means the number of terms assigned to topic j from document i. 
 	 */
-	private int[][] DK;
+	private int[][] docTopic;
 	
-	/** D dimensional array, each entry DK_D means the number of terms in document i */
-	private int[] DK_D;
+	/** D dimensional array, each entry of numTermsInDoc means the number of terms in document i */
+	private int[] numTermsInDoc;
 	
 	/**
-	 * K by V dimensional matrix. Each entry KV_{i,j} means the the number of times term j assigned to 
+	 * K by V dimensional matrix. Each entry topicTerms{i,j} means the the number of times term j assigned to 
 	 * topic i. 
 	 */
-	private int[][] KV;
+	private int[][] topicTerms;
 	
 	/**
-	 * K dimensional array, sum of the rows for KV. Each entry KV_K_{i} means the number of 
+	 * K dimensional array, sum of the rows for topicTerms. Each entry termsCountInTopic{i} means the number of 
 	 * terms assigned to topic i.  
 	 */
-	private int[] KV_K;
+	private int[] termsCountInTopic;
 
 	/** number of iterations requred for gibbs sampler the default is value 100, 
 	 *  you can change this value based on your data size, if your data size is bigger, you 
@@ -94,10 +94,10 @@ public class LDAModel {
 	 * @param phi     prior for topic-word dist
 	 * @param k       number of topics. 
 	 */
-    public LDAModel(double alpha, double phi, int k){
+    public LDAModel(double alpha, double phi, int numTopics){
     	this.alpha = alpha;
     	this.phi = phi;
-    	this.K = k;
+    	this.numTopics = numTopics;
     }
 	
     /**
@@ -107,19 +107,19 @@ public class LDAModel {
      * @param corpus
      */
     public void init(Corpus corpus){
-    	D = corpus.getDocCount();   // set the number of documents. 
-    	V = corpus.getTermCount();  // set the vocabulary size
+        numDocs = corpus.getDocCount();   // set the number of documents. 
+    	vocabSize = corpus.getTermCount();  // set the vocabulary size
     	
-    	beta = new double[K][V];    
-    	theta = new double[D][K];   
-    	DK = new int[D][K];
-    	KV = new int[K][V];
-    	DK_D = new int[D];
-    	KV_K = new int[K];
+    	beta = new double[numTopics][vocabSize];    
+    	theta = new double[numDocs][numTopics];   
+    	docTopic = new int[numDocs][numTopics];
+    	topicTerms = new int[numTopics][vocabSize];
+    	numTermsInDoc = new int[numDocs];
+    	termsCountInTopic = new int[numTopics];
     	
     	List<Document> documents = corpus.getDocuments();
-    	doc = new int[D][];
-    	for (int i = 0 ; i < D; i++){
+    	doc = new int[numDocs][];
+    	for (int i = 0 ; i < numDocs; i++){
     		// construct each doc[i][] 
     		Document d = documents.get(i);
     		int count = d.getTotalTerms();
@@ -129,19 +129,19 @@ public class LDAModel {
     	}
     	
     	// initialize the latent variable z
-    	z= new int[D][];
-    	for (int i = 0; i < D; i++){
+    	z= new int[numDocs][];
+    	for (int i = 0; i < numDocs; i++){
     		Document d = documents.get(i);
     		int count = d.getTotalTerms();
     		z[i] = new int[count];
     		for (int j = 0; j < count; j++){
-    			int randTopic = (int)(Math.random() * K);  // randomly sample from topic [1...K]. 
+    			int randTopic = (int)(Math.random() * numTopics);  // randomly sample from topic [1...K]. 
     			z[i][j] = randTopic;
-    			DK[i][randTopic]++;
-    			KV[randTopic][doc[i][j]]++;
-    			KV_K[randTopic]++;
+    			docTopic[i][randTopic]++;
+    			topicTerms[randTopic][doc[i][j]]++;
+    			termsCountInTopic[randTopic]++;
     		}
-    		DK_D[i] = count;
+    		numTermsInDoc[i] = count;
     	}
     }
     
@@ -151,7 +151,7 @@ public class LDAModel {
      */
     public void runCollapsedGibbs(){
     	for (int i = 0; i < iterations; i++){
-    		for (int d = 0; d < D; d++){
+    		for (int d = 0; d < numDocs; d++){
     			int count = doc[d].length;
     			for (int w = 0; w < count; w++){
     				// run collapsed gibbs sampler, 
@@ -169,15 +169,15 @@ public class LDAModel {
      * update all the parameters. 
      */
     private void updateParameters(){
-    	for(int k = 0; k < K; k++){
-			for(int i = 0; i < V; i++){
-				beta[k][i] = (KV[k][i] + phi) / (KV_K[k] + V * phi);
+    	for(int k = 0; k < numTopics; k++){
+			for(int i = 0; i < vocabSize; i++){
+				beta[k][i] = (topicTerms[k][i] + phi) / (termsCountInTopic[k] + vocabSize * phi);
 			}
 		}
 		
-		for(int d = 0; d < D; d++){
-			for(int k = 0; k < K; k++){
-				theta[d][k] = (DK[d][k] + alpha) / (DK_D[d] + K * alpha);
+		for(int d = 0; d < numDocs; d++){
+			for(int k = 0; k < numTopics; k++){
+				theta[d][k] = (docTopic[d][k] + alpha) / (numTermsInDoc[d] + numTopics * alpha);
 			}
 		}
     }
@@ -190,25 +190,25 @@ public class LDAModel {
      */
     private int sampleNewTopic(int d, int w){
     	int oldTopic = z[d][w];
-    	DK[d][oldTopic]--;
-    	KV[oldTopic][doc[d][w]]--;
-    	DK_D[d]--;
-    	KV_K[oldTopic]--;
+    	docTopic[d][oldTopic]--;
+    	topicTerms[oldTopic][doc[d][w]]--;
+    	numTermsInDoc[d]--;
+    	termsCountInTopic[oldTopic]--;
     	
     	// compute p(z_i = j | *)
-    	double[] p = new double[K];
-    	for (int j = 0; j < K; j++){
-    		p[j] = (alpha + DK[d][j]) / (K * alpha + DK_D[d]) * (phi + KV[j][doc[d][w]]) / (V * phi + KV_K[j]);
+    	double[] p = new double[numTopics];
+    	for (int j = 0; j < numTopics; j++){
+    		p[j] = (alpha + docTopic[d][j]) / (numTopics * alpha + numTermsInDoc[d]) * (phi + topicTerms[j][doc[d][w]]) / (vocabSize * phi + termsCountInTopic[j]);
     	}
     			
     	// sample the topic topic from the distribution p[j].
     	MultiNomialDist dist = new MultiNomialDist(p);
     	int newTopic = dist.getSample();
     	
-    	DK[d][newTopic]++;
-    	KV[newTopic][doc[d][w]]++;
-    	DK_D[d]++;
-    	KV_K[newTopic]++;
+    	docTopic[d][newTopic]++;
+    	topicTerms[newTopic][doc[d][w]]++;
+    	numTermsInDoc[d]++;
+    	termsCountInTopic[newTopic]++;
     	
     	return newTopic;				
     }
@@ -258,7 +258,7 @@ public class LDAModel {
 	 * @return  K
 	 */
 	public int getTopicCount(){
-		return this.K;
+		return this.numTopics;
 	}
 	
 	/**
@@ -266,7 +266,7 @@ public class LDAModel {
 	 * @return   vocabulary size
 	 */
 	public int getTermCount(){
-		return this.V;
+		return this.vocabSize;
 	}
 	
 	/**
@@ -283,7 +283,7 @@ public class LDAModel {
 	 * @return   total number of documents. 
 	 */
 	public int getDocCount(){
-		return this.D;
+		return this.numDocs;
 	}
 	
 	/**

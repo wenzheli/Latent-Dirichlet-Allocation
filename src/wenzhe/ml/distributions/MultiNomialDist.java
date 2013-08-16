@@ -1,7 +1,3 @@
-/*
- * (C) Copyright 2013, wenzhe li (nadalwz1115@hotmail.com) 
- */
-
 package wenzhe.ml.distributions;
 
 /**
