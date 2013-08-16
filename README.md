@@ -11,3 +11,4 @@ Reference:
 
 I will add LDA derivation as technical note shortly. 
 
+For report, please see /doc/nonparametric.pdf
