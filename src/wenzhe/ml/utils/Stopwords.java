@@ -14,11 +14,10 @@ package wenzhe.ml.utils;
  *    You should have received a copy of the GNU General Public License
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
-/*
+ *
+ *
  *    Stopwords.java
  *    Copyright (C) 2001 Eibe Frank 
- *    Copyright 2013, wenzhe li (nadalwz1115@hotmail.com)
  */
  
 

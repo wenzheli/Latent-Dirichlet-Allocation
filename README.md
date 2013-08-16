@@ -1,11 +1,13 @@
-Collapsed Gibbs Sampler for LDA model (JAVA)
+Java implementation for LDA (Collapsed Gibbs Sampling)
 ==========
 
-You can run the testHDP.java to see how it is working. 
+The implementation contains: 
+  - Collapsed Gibbs Sampler
+  - Example application of online review mining. 
 
-The implemetation and notations based on the David Blei's paper (2003). 
+Reference:
+  - David Blei's paper (2003)
+  - Yelp Review Data Sets. http://www.yelp.com/dataset_challenge/
 
-Please note that the test data set is yelp review data sets, but you can change the data set you want to experiment. 
-However, you need to change the class under the datasets folder.  Enjoy!
+I will add LDA derivation as technical note shortly. 
 
-If you find any bugs, or errors please let me know. Thanks. 
